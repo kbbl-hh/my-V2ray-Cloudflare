@@ -1,0 +1,39 @@
+name: Deploy V2Ray to Cloudflare Tunnel
+
+on:
+  push:
+    branches:
+      - main  # 当代码推送到 main 分支时触发
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Cloudflare Tunnel
+      uses: cloudflare/cloudflare-action@v1
+      with:
+        api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}  # 在 GitHub secrets 中添加 Cloudflare API Token
+        account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}  # 在 GitHub secrets 中添加 Cloudflare Account ID
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y curl
+        curl -fsSL https://github.com/v2ray/v2ray-core/releases/download/v4.45.0/v2ray-linux-64.zip -o v2ray.zip
+        unzip v2ray.zip -d /usr/local/bin
+        sudo chmod +x /usr/local/bin/v2ray
+        rm v2ray.zip
+
+    - name: Start V2Ray
+      run: |
+        nohup /usr/local/bin/v2ray -config /etc/v2ray/config.json &
+        
+    - name: Cloudflare Tunnel Setup
+      run: |
+        # 你可以添加任何 Cloudflare Tunnel 设置步骤，例如启动 Tunnel
+        # 或者通过 Cloudflare Tunnel 连接 V2Ray 服务
+        echo "Cloudflare Tunnel setup completed"
